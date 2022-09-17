@@ -37,7 +37,7 @@ CONTROLLER_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_HOST): cv.string,
         vol.Optional(CONF_FRIENDLY_NAME, default='iqtec_controller'): cv.string,
-        vol.Optional(CONF_COVERS): vol.Schema(vol.All(cv.ensure_list, [COVER_SCHEMA]))
+        CONF_COVERS: vol.Schema(vol.All(cv.ensure_list, [COVER_SCHEMA]), required=False)
     }
 )
 
@@ -72,7 +72,7 @@ def _setup_controller(hass: HomeAssistant, controller_config: ConfigType, config
     except Exception as e:
         _LOGGER.error(f"Unable to setup controller {host}: {e}")
         return False
-    coordinator = UpdateCoordinator(controller)
+    coordinator = UpdateCoordinator(hass, controller)
     hass.data[DOMAIN].append(coordinator)
     _LOGGER.debug(f"IQtec controller {host} is set to: {position}")
 
@@ -102,7 +102,7 @@ class UpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         try:
-            self.controller.update()
+            await self.hass.async_add_executor_job(self.controller.update)
         except piqtec.exceptions.APIError as e:
             raise UpdateFailed(f"Error while communicating with API: {e}")
 

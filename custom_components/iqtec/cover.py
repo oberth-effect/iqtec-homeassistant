@@ -77,7 +77,10 @@ class IqtecCover(CoordinatorEntity, CoverEntity):
         self._connect()
 
     def _connect(self) -> None:
-        self.controller.add_sunblind(self._address, self._name)
+        self._cover = self.controller.add_sunblind(self._address, self._name)
+        self.controller.update()
+        self._cover_position = self.decode_position(self._cover.position)
+        self._tilt_position = self.decode_tilt(self._cover.rotation)
 
     @property
     def name(self):
@@ -100,8 +103,12 @@ class IqtecCover(CoordinatorEntity, CoverEntity):
     def supported_features(self) -> int:
         return SUPPORT_OPEN | SUPPORT_STOP | SUPPORT_CLOSE | SUPPORT_OPEN_TILT | SUPPORT_STOP_TILT | SUPPORT_CLOSE_TILT | SUPPORT_SET_POSITION | SUPPORT_SET_TILT_POSITION
 
+    @property
+    def is_closed(self) -> bool | None:
+        return None
+
     def open_cover(self, **kwargs: Any) -> None:
-        self._cover.open()
+        self._cover.up()
 
     def close_cover(self, **kwargs: Any) -> None:
         self._cover.down()
@@ -144,6 +151,6 @@ class IqtecCover(CoordinatorEntity, CoverEntity):
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        self._cover_position = self._cover.position
-        self._tilt_position = self._cover.rotation
+        self._cover_position = self.decode_position(self._cover.position)
+        self._tilt_position = self.decode_tilt(self._cover.rotation)
         self.async_write_ha_state()
