@@ -37,14 +37,15 @@ CONTROLLER_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_HOST): cv.string,
         vol.Optional(CONF_FRIENDLY_NAME, default='iqtec_controller'): cv.string,
-        CONF_COVERS: vol.Schema(vol.All(cv.ensure_list, [COVER_SCHEMA]), required=False)
+        CONF_COVERS: vol.Schema(vol.All(cv.ensure_list, [COVER_SCHEMA]), required=False),
     }
 )
 
 CONFIG_SCHEMA = vol.Schema(
     {
-        DOMAIN: vol.Schema(vol.All(cv.ensure_list, [CONTROLLER_SCHEMA]))
-    }
+        DOMAIN: vol.Schema(vol.All(cv.ensure_list, [CONTROLLER_SCHEMA])),
+    },
+    extra=vol.ALLOW_EXTRA,
 )
 
 
@@ -105,4 +106,3 @@ class UpdateCoordinator(DataUpdateCoordinator):
             await self.hass.async_add_executor_job(self.controller.update)
         except piqtec.exceptions.APIError as e:
             raise UpdateFailed(f"Error while communicating with API: {e}")
-

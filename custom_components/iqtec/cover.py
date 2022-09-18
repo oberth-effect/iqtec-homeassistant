@@ -123,7 +123,7 @@ class IqtecCover(CoordinatorEntity, CoverEntity):
         self._cover.open()
 
     def close_cover_tilt(self, **kwargs: Any) -> None:
-        self._cover.tilt(piqtec.constants.SUNBLIND_FULL_TILT)
+        self._cover.tilt(piqtec.constants.SUNBLIND_TILT_CLOSED)
 
     def set_cover_tilt_position(self, **kwargs: Any) -> None:
         hass_tilt = kwargs[ATTR_TILT_POSITION]
