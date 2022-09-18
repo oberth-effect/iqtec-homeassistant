@@ -62,6 +62,7 @@ def setup_platform(
 class IqtecCover(CoordinatorEntity, CoverEntity):
     """A cover implementation of IQtec sunblinds"""
     _attr_has_entity_name = True
+    _attr_name = None
     _address: str
     _cover: piqtec.devices.Sunblind
 
@@ -79,13 +80,11 @@ class IqtecCover(CoordinatorEntity, CoverEntity):
     def _connect(self) -> None:
         self._cover = self.controller.add_sunblind(self._address, self._name)
         self.controller.update()
-        self._cover_position = self.decode_position(self._cover.position)
-        self._tilt_position = self.decode_tilt(self._cover.rotation)
+        self.__load_data()
 
     @property
-    def name(self):
-        """Name of the entity"""
-        return """IQtec Cover"""
+    def unique_id(self) -> str | None:
+        return f"cover_{self._address}"
 
     @property
     def current_cover_tilt_position(self) -> int:
@@ -96,7 +95,7 @@ class IqtecCover(CoordinatorEntity, CoverEntity):
         return self._cover_position
 
     @property
-    def device_class(self) -> CoverDeviceClass:
+    def device_class(self) -> CoverDeviceClass | str | None:
         return DEVICE_CLASS_BLIND
 
     @property
@@ -135,11 +134,11 @@ class IqtecCover(CoordinatorEntity, CoverEntity):
 
     @staticmethod
     def encode_tilt(hass_tilt: int):
-        return int((100 - hass_tilt) * piqtec.constants.SUNBLIND_FULL_TILT / 100)
+        return int((100 - hass_tilt) * piqtec.constants.SUNBLIND_TILT_CLOSED / 100)
 
     @staticmethod
     def decode_tilt(iqtec_tilt: int):
-        return 100 - int(iqtec_tilt / piqtec.constants.SUNBLIND_FULL_TILT * 100)
+        return 100 - int(iqtec_tilt / piqtec.constants.SUNBLIND_TILT_CLOSED * 100)
 
     @staticmethod
     def encode_position(has_pos: int) -> int:
@@ -151,6 +150,9 @@ class IqtecCover(CoordinatorEntity, CoverEntity):
 
     @callback
     def _handle_coordinator_update(self) -> None:
+        self.__load_data()
+        self.async_write_ha_state()
+
+    def __load_data(self):
         self._cover_position = self.decode_position(self._cover.position)
         self._tilt_position = self.decode_tilt(self._cover.rotation)
-        self.async_write_ha_state()
